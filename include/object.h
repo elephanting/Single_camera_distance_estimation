@@ -1,5 +1,5 @@
 #include <iostream>
-#include "./lib/yolov3/include/darknet.h"
+#include "darknet.h"
 
 
 class Object
@@ -13,4 +13,4 @@ private:
     float topleft;
     float bottomright;
     float distance;
-}
+};
