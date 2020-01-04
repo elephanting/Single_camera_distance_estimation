@@ -101,7 +101,11 @@ dim3 cuda_gridsize(size_t n){
         x = ceil(sqrt(k));
         y = (n-1)/(x*BLOCK) + 1;
     }
-    dim3 d = { (unsigned int)x, (unsigned int)y, 1 };
+    //dim3 d = { (unsigned int)x, (unsigned int)y, 1 };
+    dim3 d;
+    d.x = x;
+    d.y = y;
+    d.z = 1;
     //printf("%ld %ld %ld %ld\n", n, x, y, x*y*BLOCK);
     return d;
 }
@@ -112,6 +116,7 @@ static int streamInit[16] = { 0 };
 cudaStream_t get_cuda_stream() {
     int i = cuda_get_device();
     if (!streamInit[i]) {
+        //printf("Create CUDA-stream \n");
         cudaError_t status = cudaStreamCreate(&streamsArray[i]);
         //cudaError_t status = cudaStreamCreateWithFlags(&streamsArray[i], cudaStreamNonBlocking);
         if (status != cudaSuccess) {
@@ -280,9 +285,9 @@ float *cuda_make_array_pinned_preallocated(float *x, size_t n)
 {
     pthread_mutex_lock(&mutex_pinned);
     float *x_cpu = NULL;
-    const size_t memory_step = 4096;
+    const size_t memory_step = 512;// 4096;
     const size_t size = sizeof(float)*n;
-    const size_t allocation_size = ((size / 4096) + 1) * 4096;
+    const size_t allocation_size = ((size / memory_step) + 1) * memory_step;
 
     if (pinned_ptr && pinned_block_id < pinned_num_of_blocks && (allocation_size < pinned_block_size/2))
     {
@@ -468,6 +473,24 @@ int get_gpu_compute_capability(int i)
     CHECK_CUDA(status);
     int cc = prop.major * 100 + prop.minor * 10;    // __CUDA_ARCH__ format
     return cc;
+}
+
+void show_cuda_cudnn_info()
+{
+    int cuda_version = 0, cuda_driver_version = 0, device_count = 0;
+    CHECK_CUDA(cudaRuntimeGetVersion(&cuda_version));
+    CHECK_CUDA(cudaDriverGetVersion(&cuda_driver_version));
+    fprintf(stderr, " CUDA-version: %d (%d)", cuda_version, cuda_driver_version);
+    if(cuda_version < cuda_driver_version) fprintf(stderr, "\n Warning: CUDA-version is lower than Driver-version! \n");
+#ifdef CUDNN
+    fprintf(stderr, ", cuDNN: %d.%d.%d", CUDNN_MAJOR, CUDNN_MINOR, CUDNN_PATCHLEVEL);
+#endif  // CUDNN
+#ifdef CUDNN_HALF
+    fprintf(stderr, ", CUDNN_HALF=1");
+#endif  // CUDNN_HALF
+    CHECK_CUDA(cudaGetDeviceCount(&device_count));
+    fprintf(stderr, ", GPU count: %d ", device_count);
+    fprintf(stderr, " \n");
 }
 
 #else // GPU

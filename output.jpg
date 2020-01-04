@@ -1,0 +1,24 @@
+[
+{
+ "frame_id":1, 
+ "filename":"test.jpg", 
+ "objects": [ 
+  {"class_id":26, "name":"handbag", "relative_coordinates":{"center_x":0.407064, "center_y":0.673200, "width":0.062065, "height":0.097557}, "confidence":0.338816}, 
+  {"class_id":1, "name":"bicycle", "relative_coordinates":{"center_x":0.110499, "center_y":0.750921, "width":0.211689, "height":0.280836}, "confidence":0.928060}, 
+  {"class_id":1, "name":"bicycle", "relative_coordinates":{"center_x":0.437502, "center_y":0.771171, "width":0.152841, "height":0.291171}, "confidence":0.736355}, 
+  {"class_id":1, "name":"bicycle", "relative_coordinates":{"center_x":0.504623, "center_y":0.636737, "width":0.026861, "height":0.074471}, "confidence":0.558336}, 
+  {"class_id":1, "name":"bicycle", "relative_coordinates":{"center_x":0.783111, "center_y":0.561318, "width":0.030997, "height":0.052512}, "confidence":0.551315}, 
+  {"class_id":1, "name":"bicycle", "relative_coordinates":{"center_x":0.624224, "center_y":0.825015, "width":0.111638, "height":0.343705}, "confidence":0.446276}, 
+  {"class_id":1, "name":"bicycle", "relative_coordinates":{"center_x":0.700815, "center_y":0.572485, "width":0.026291, "height":0.050637}, "confidence":0.398425}, 
+  {"class_id":1, "name":"bicycle", "relative_coordinates":{"center_x":0.751730, "center_y":0.559638, "width":0.048941, "height":0.062985}, "confidence":0.342179}, 
+  {"class_id":1, "name":"bicycle", "relative_coordinates":{"center_x":0.822261, "center_y":0.547462, "width":0.050502, "height":0.051736}, "confidence":0.321428}, 
+  {"class_id":0, "name":"person", "relative_coordinates":{"center_x":0.627259, "center_y":0.656015, "width":0.129378, "height":0.371299}, "confidence":0.985725}, 
+  {"class_id":0, "name":"person", "relative_coordinates":{"center_x":0.909490, "center_y":0.522154, "width":0.019039, "height":0.067714}, "confidence":0.946406}, 
+  {"class_id":0, "name":"person", "relative_coordinates":{"center_x":0.439564, "center_y":0.649575, "width":0.108697, "height":0.305895}, "confidence":0.936419}, 
+  {"class_id":0, "name":"person", "relative_coordinates":{"center_x":0.979680, "center_y":0.518824, "width":0.020864, "height":0.083652}, "confidence":0.931702}, 
+  {"class_id":0, "name":"person", "relative_coordinates":{"center_x":0.954579, "center_y":0.514693, "width":0.017030, "height":0.071228}, "confidence":0.925277}, 
+  {"class_id":0, "name":"person", "relative_coordinates":{"center_x":0.965807, "center_y":0.516323, "width":0.014587, "height":0.072341}, "confidence":0.896897}, 
+  {"class_id":0, "name":"person", "relative_coordinates":{"center_x":0.932182, "center_y":0.514671, "width":0.019265, "height":0.069874}, "confidence":0.804628}
+ ] 
+}
+]

@@ -231,10 +231,10 @@ void cudnn_convolutional_setup(layer *l, int cudnn_preference, size_t workspace_
     // 2. Loss Scaling - required only for: activation gradients. We do not use.
     // 3. FP32 Master Copy of Weights
     // More: http://docs.nvidia.com/deeplearning/sdk/cudnn-developer-guide/index.html#tensor_ops
-    CHECK_CUDNN(cudnnSetConvolutionMathType(l->convDesc, CUDNN_TENSOR_OP_MATH));
     CHECK_CUDNN(cudnnSetConvolutionGroupCount(l->convDesc, l->groups));
+    //if (l->groups == 1) CHECK_CUDNN(cudnnSetConvolutionMathType(l->convDesc, CUDNN_TENSOR_OP_MATH));
 #if((CUDNN_MAJOR*10 + CUDNN_MINOR) >= 72)   // cuDNN >= 7.2
-    CHECK_CUDNN(cudnnSetConvolutionMathType(l->convDesc, CUDNN_TENSOR_OP_MATH_ALLOW_CONVERSION));
+    //CHECK_CUDNN(cudnnSetConvolutionMathType(l->convDesc, CUDNN_TENSOR_OP_MATH_ALLOW_CONVERSION)); // reduces the speed of regular and group convolution
 #endif
 #else   //if(CUDNN_MAJOR >= 7)
     if (l->groups > 1) {
@@ -370,7 +370,7 @@ void free_convolutional_batchnorm(convolutional_layer *l)
     }
 }
 
-convolutional_layer make_convolutional_layer(int batch, int steps, int h, int w, int c, int n, int groups, int size, int stride_x, int stride_y, int dilation, int padding, ACTIVATION activation, int batch_normalize, int binary, int xnor, int adam, int use_bin_output, int index, int antialiasing, convolutional_layer *share_layer, int assisted_excitation, int train)
+convolutional_layer make_convolutional_layer(int batch, int steps, int h, int w, int c, int n, int groups, int size, int stride_x, int stride_y, int dilation, int padding, ACTIVATION activation, int batch_normalize, int binary, int xnor, int adam, int use_bin_output, int index, int antialiasing, convolutional_layer *share_layer, int assisted_excitation, int deform, int train)
 {
     int total_batch = batch*steps;
     int i;
@@ -388,6 +388,7 @@ convolutional_layer make_convolutional_layer(int batch, int steps, int h, int w,
         stride_x = stride_y = l.stride = l.stride_x = l.stride_y = 1; // use stride=1 in host-layer
     }
 
+    l.deform = deform;
     l.assisted_excitation = assisted_excitation;
     l.share_layer = share_layer;
     l.index = index;
@@ -514,10 +515,13 @@ convolutional_layer make_convolutional_layer(int batch, int steps, int h, int w,
             l.x = (float*)calloc(total_batch * l.outputs, sizeof(float));
             l.x_norm = (float*)calloc(total_batch * l.outputs, sizeof(float));
         }
-
-        if (l.activation == SWISH || l.activation == MISH) l.activation_input = (float*)calloc(total_batch*l.outputs, sizeof(float));
 #endif  // not GPU
     }
+
+#ifndef GPU
+    if (l.activation == SWISH || l.activation == MISH) l.activation_input = (float*)calloc(total_batch*l.outputs, sizeof(float));
+#endif  // not GPU
+
     if(adam){
         l.adam = 1;
         l.m = (float*)calloc(l.nweights, sizeof(float));
@@ -530,15 +534,20 @@ convolutional_layer make_convolutional_layer(int batch, int steps, int h, int w,
 
 
 #ifdef GPU
-    if (l.activation == SWISH || l.activation == MISH) {
-        l.activation_input_gpu = cuda_make_array(l.activation_input, total_batch*l.outputs);
-    }
+
 
     l.forward_gpu = forward_convolutional_layer_gpu;
     l.backward_gpu = backward_convolutional_layer_gpu;
     l.update_gpu = update_convolutional_layer_gpu;
 
     if(gpu_index >= 0){
+
+        if (l.activation == SWISH || l.activation == MISH) {
+            l.activation_input_gpu = cuda_make_array(l.activation_input, total_batch*l.outputs);
+        }
+
+        if (l.deform) l.weight_deform_gpu = cuda_make_array(NULL, l.nweights);
+
         if (adam) {
             l.m_gpu = cuda_make_array(l.m, l.nweights);
             l.v_gpu = cuda_make_array(l.v, l.nweights);
@@ -660,7 +669,7 @@ convolutional_layer make_convolutional_layer(int batch, int steps, int h, int w,
             blur_size = 2;
             blur_pad = 0;
         }
-        *(l.input_layer) = make_convolutional_layer(batch, steps, out_h, out_w, n, n, n, blur_size, blur_stride_x, blur_stride_y, 1, blur_pad, LINEAR, 0, 0, 0, 0, 0, index, 0, NULL, 0, train);
+        *(l.input_layer) = make_convolutional_layer(batch, steps, out_h, out_w, n, n, n, blur_size, blur_stride_x, blur_stride_y, 1, blur_pad, LINEAR, 0, 0, 0, 0, 0, index, 0, NULL, 0, 0, train);
         const int blur_nweights = n * blur_size * blur_size;  // (n / n) * n * blur_size * blur_size;
         int i;
         if (blur_size == 2) {
@@ -715,7 +724,7 @@ void denormalize_convolutional_layer(convolutional_layer l)
 
 void test_convolutional_layer()
 {
-    convolutional_layer l = make_convolutional_layer(1, 1, 5, 5, 3, 2, 1, 5, 2, 2, 1, 1, LEAKY, 1, 0, 0, 0, 0, 0, 0, NULL, 0, 0);
+    convolutional_layer l = make_convolutional_layer(1, 1, 5, 5, 3, 2, 1, 5, 2, 2, 1, 1, LEAKY, 1, 0, 0, 0, 0, 0, 0, NULL, 0, 0, 0);
     l.batch_normalize = 1;
     float data[] = {1,1,1,1,1,
         1,1,1,1,1,
@@ -1204,6 +1213,7 @@ void forward_convolutional_layer(convolutional_layer l, network_state state)
                 if (l.activation == SWISH) activate_array_swish(l.output, l.outputs*l.batch, l.activation_input, l.output);
                 else if (l.activation == MISH) activate_array_mish(l.output, l.outputs*l.batch, l.activation_input, l.output);
                 else if (l.activation == NORM_CHAN) activate_array_normalize_channels(l.output, l.outputs*l.batch, l.batch, l.out_c, l.out_w*l.out_h, l.output);
+                else if (l.activation == NORM_CHAN_SOFTMAX) activate_array_normalize_channels_softmax(l.output, l.outputs*l.batch, l.batch, l.out_c, l.out_w*l.out_h, l.output);
                 else activate_array_cpu_custom(l.output, m*n*l.batch, l.activation);
                 return;
 
@@ -1239,12 +1249,15 @@ void forward_convolutional_layer(convolutional_layer l, network_state state)
     if(l.batch_normalize){
         forward_batchnorm_layer(l, state);
     }
-    add_bias(l.output, l.biases, l.batch, l.n, out_h*out_w);
+    else {
+        add_bias(l.output, l.biases, l.batch, l.n, out_h*out_w);
+    }
 
     //activate_array(l.output, m*n*l.batch, l.activation);
     if (l.activation == SWISH) activate_array_swish(l.output, l.outputs*l.batch, l.activation_input, l.output);
     else if (l.activation == MISH) activate_array_mish(l.output, l.outputs*l.batch, l.activation_input, l.output);
     else if (l.activation == NORM_CHAN) activate_array_normalize_channels(l.output, l.outputs*l.batch, l.batch, l.out_c, l.out_w*l.out_h, l.output);
+    else if (l.activation == NORM_CHAN_SOFTMAX) activate_array_normalize_channels_softmax(l.output, l.outputs*l.batch, l.batch, l.out_c, l.out_w*l.out_h, l.output);
     else activate_array_cpu_custom(l.output, l.outputs*l.batch, l.activation);
 
     if(l.binary || l.xnor) swap_binary(&l);
@@ -1383,6 +1396,8 @@ void backward_convolutional_layer(convolutional_layer l, network_state state)
 
     if (l.activation == SWISH) gradient_array_swish(l.output, l.outputs*l.batch, l.activation_input, l.delta);
     else if (l.activation == MISH) gradient_array_mish(l.outputs*l.batch, l.activation_input, l.delta);
+    else if (l.activation == NORM_CHAN_SOFTMAX) gradient_array_normalize_channels_softmax(l.output, l.outputs*l.batch, l.batch, l.out_c, l.out_w*l.out_h, l.delta);
+    else if (l.activation == NORM_CHAN) gradient_array_normalize_channels(l.output, l.outputs*l.batch, l.batch, l.out_c, l.out_w*l.out_h, l.delta);
     else gradient_array(l.output, l.outputs*l.batch, l.activation, l.delta);
 
     if (l.batch_normalize) {
@@ -1437,9 +1452,17 @@ void backward_convolutional_layer(convolutional_layer l, network_state state)
     }
 }
 
-void update_convolutional_layer(convolutional_layer l, int batch, float learning_rate, float momentum, float decay)
+void update_convolutional_layer(convolutional_layer l, int batch, float learning_rate_init, float momentum, float decay)
 {
-    //int size = l.nweights;
+    float learning_rate = learning_rate_init*l.learning_rate_scale;
+    //float momentum = a.momentum;
+    //float decay = a.decay;
+    //int batch = a.batch;
+
+    axpy_cpu(l.nweights, -decay*batch, l.weights, 1, l.weight_updates, 1);
+    axpy_cpu(l.nweights, learning_rate / batch, l.weight_updates, 1, l.weights, 1);
+    scal_cpu(l.nweights, momentum, l.weight_updates, 1);
+
     axpy_cpu(l.n, learning_rate / batch, l.bias_updates, 1, l.biases, 1);
     scal_cpu(l.n, momentum, l.bias_updates, 1);
 
@@ -1447,10 +1470,6 @@ void update_convolutional_layer(convolutional_layer l, int batch, float learning
         axpy_cpu(l.n, learning_rate / batch, l.scale_updates, 1, l.scales, 1);
         scal_cpu(l.n, momentum, l.scale_updates, 1);
     }
-
-    axpy_cpu(l.nweights, -decay*batch, l.weights, 1, l.weight_updates, 1);
-    axpy_cpu(l.nweights, learning_rate / batch, l.weight_updates, 1, l.weights, 1);
-    scal_cpu(l.nweights, momentum, l.weight_updates, 1);
 }
 
 
@@ -1513,7 +1532,7 @@ image *visualize_convolutional_layer(convolutional_layer l, char *window, image 
     image dc = collapse_image_layers(delta, 1);
     char buff[256];
     sprintf(buff, "%s: Output", window);
-    //show_image(dc, buff);
+    show_image(dc, buff);
     //save_image(dc, buff);
     free_image(dc);
     return single_weights;

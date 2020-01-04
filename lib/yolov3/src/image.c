@@ -251,7 +251,7 @@ image **load_alphabet()
         alphabets[j] = (image*)calloc(128, sizeof(image));
         for(i = 32; i < 127; ++i){
             char buff[256];
-            sprintf(buff, "data/labels/%d_%d.png", i, j);
+            sprintf(buff, "lib/yolov3/data/labels/%d_%d.png", i, j);
             alphabets[j][i] = load_image_color(buff, 0, 0);
         }
     }
@@ -304,13 +304,15 @@ int compare_by_probs(const void *a_ptr, const void *b_ptr) {
     return delta < 0 ? -1 : delta > 0 ? 1 : 0;
 }
 
-void draw_detections_v3(image im, detection *dets, int num, float thresh, char **names, image **alphabet, int classes, int ext_output)
+void draw_detections_v3(image im, detection *dets, int num, float thresh, char **names, image **alphabet, int classes, int ext_output, detection_with_class* result, int *num_of_obj)
 {
     static int frame_id = 0;
     frame_id++;
 
     int selected_detections_num;
     detection_with_class* selected_detections = get_actual_detections(dets, num, thresh, &selected_detections_num, names);
+    *num_of_obj = selected_detections_num;
+    *result = *selected_detections;
 
     // text output
     qsort(selected_detections, selected_detections_num, sizeof(*selected_detections), compare_by_lefts);
@@ -1417,6 +1419,18 @@ image load_image_stb(char *filename, int channels)
     }
     free(data);
     return im;
+}
+
+image load_image_stb_resize(char *filename, int w, int h, int c)
+{
+    image out = load_image_stb(filename, c);    // without OpenCV
+
+    if ((h && w) && (h != out.h || w != out.w)) {
+        image resized = resize_image(out, w, h);
+        free_image(out);
+        out = resized;
+    }
+    return out;
 }
 
 image load_image(char *filename, int w, int h, int c)

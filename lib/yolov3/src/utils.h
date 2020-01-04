@@ -6,6 +6,10 @@
 #include <stdio.h>
 #include <time.h>
 
+#ifndef M_PI
+#define M_PI       3.14159265358979323846   // pi
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -81,6 +85,10 @@ int int_index(int *a, int val, int n);
 int *random_index_order(int min, int max);
 int max_int_index(int *a, int n);
 boxabs box_to_boxabs(const box* b, const int img_w, const int img_h, const int bounds_check);
+int make_directory(char *path, int mode);
+
+#define max_val_cmp(a,b) (((a) > (b)) ? (a) : (b))
+#define min_val_cmp(a,b) (((a) < (b)) ? (a) : (b))
 
 #ifdef __cplusplus
 }

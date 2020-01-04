@@ -524,7 +524,7 @@ public:
 
 static std::mutex mtx_mjpeg;
 
-struct mat_cv : cv::Mat { int a[0]; };
+//struct mat_cv : cv::Mat { int a[0]; };
 
 void send_mjpeg(mat_cv* mat, int port, int timeout, int quality)
 {
@@ -532,7 +532,7 @@ void send_mjpeg(mat_cv* mat, int port, int timeout, int quality)
         std::lock_guard<std::mutex> lock(mtx_mjpeg);
         static MJPG_sender wri(port, timeout, quality);
         //cv::Mat mat = cv::cvarrToMat(ipl);
-        wri.write(*mat);
+        wri.write(*(cv::Mat*)mat);
         std::cout << " MJPEG-stream sent. \n";
     }
     catch (...) {
@@ -544,6 +544,8 @@ void send_mjpeg(mat_cv* mat, int port, int timeout, int quality)
 std::string get_system_frame_time_string()
 {
     std::time_t t = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+    static std::mutex mtx;
+    std::lock_guard<std::mutex> lock(mtx);
     struct tm *tmp_buf = localtime(&t);
     char buff[256];
     std::strftime(buff, 256, "%A %F %T", tmp_buf);
@@ -554,7 +556,7 @@ std::string get_system_frame_time_string()
 
 
 #ifdef __CYGWIN__
-int send_http_post_request(char *http_post_host, int server_port, char *videosource,
+int send_http_post_request(char *http_post_host, int server_port, const char *videosource,
     detection *dets, int nboxes, int classes, char **names, long long int frame_id, int ext_output, int timeout)
 {
     std::cerr << " send_http_post_request() isn't implemented \n";
@@ -576,7 +578,7 @@ int send_http_post_request(char *http_post_host, int server_port, char *videosou
 // https://webhook.site/
 // https://github.com/yhirose/cpp-httplib
 // sent POST http request
-int send_http_post_request(char *http_post_host, int server_port, char *videosource,
+int send_http_post_request(char *http_post_host, int server_port, const char *videosource,
     detection *dets, int nboxes, int classes, char **names, long long int frame_id, int ext_output, int timeout)
 {
     const float thresh = 0.005; // function get_network_boxes() has already filtred dets by actual threshold

@@ -37,6 +37,7 @@ void mean_cpu(float *x, int batch, int filters, int spatial, float *mean);
 void variance_cpu(float *x, float *mean, int batch, int filters, int spatial, float *variance);
 void normalize_cpu(float *x, float *mean, float *variance, int batch, int filters, int spatial);
 
+void add_bias(float *output, float *biases, int batch, int n, int size);
 void scale_bias(float *output, float *scales, int batch, int n, int size);
 void backward_scale_cpu(float *x_norm, float *delta, int batch, int n, int size, float *scale_updates);
 void mean_delta_cpu(float *delta, float *variance, int batch, int filters, int spatial, float *mean_delta);
@@ -128,6 +129,14 @@ void backward_sam_gpu(float *in_w_h_c_delta, int size, int channel_size,
     float *in_from_output, float *out_state_delta);
 
 void sam_gpu(float *in_w_h_c, int size, int channel_size, float *scales_c, float *out);
+
+void smooth_rotate_weights_gpu(const float *src_weight_gpu, float *weight_deform_gpu, int nweights, int n, int size, int angle, int reverse);
+void stretch_weights_gpu(const float *src_weight_gpu, float *weight_deform_gpu, int nweights, int n, int size, float scale, int reverse);
+void sway_and_flip_weights_gpu(const float *src_weight_gpu, float *weight_deform_gpu, int nweights, int n, int size, int angle, int reverse);
+void stretch_sway_flip_weights_gpu(const float *src_weight_gpu, float *weight_deform_gpu, int nweights, int n, int size, int angle, int reverse);
+void rotate_weights_gpu(const float *src_weight_gpu, float *weight_deform_gpu, int nweights, int n, int size, int reverse);
+void reduce_and_expand_array_gpu(const float *src_gpu, float *dst_gpu, int size, int groups);
+void expand_array_gpu(const float *src_gpu, float *dst_gpu, int size, int groups);
 
 #endif
 #ifdef __cplusplus
