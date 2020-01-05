@@ -45,6 +45,8 @@ angle(Degree), height(Meter)
 ```
 output image name is `predictions.jpg`
 
+![example](./predictions.jpg)
+
 ## References
 [Yolov3](https://github.com/AlexeyAB/darknet)
 
