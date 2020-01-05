@@ -2,7 +2,7 @@
 19fall nctu nsd term project
 
 ## Introduction
-This project provides a simple methodology to estimate depth of objects in an image. The algorithm does not need a dual camera forming 3D coordinate to predict depth. It can do it using a monocular camera. You can find the algorithm in reference.
+This project provides a simple methodology to estimate depth of objects in an image. The algorithm does not need a dual camera forming 3D coordinate to predict depth. It can  using a monocular camera. You can find the algorithm in reference.
 
 However, the algorithm can only estimate image took in small pitch angle. Pitch angle plus field of view angle in vertical direction can not be greater than 90 degrees.
 
