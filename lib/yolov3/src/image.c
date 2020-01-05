@@ -311,13 +311,14 @@ void draw_detections_v3(image im, detection *dets, int num, float thresh, char *
 
     int selected_detections_num;
     detection_with_class* selected_detections = get_actual_detections(dets, num, thresh, &selected_detections_num, names);
+    if (selected_detections_num > 50) selected_detections_num = 50;
     *num_of_obj = selected_detections_num;
-    *result = *selected_detections;
 
     // text output
     qsort(selected_detections, selected_detections_num, sizeof(*selected_detections), compare_by_lefts);
     int i;
     for (i = 0; i < selected_detections_num; ++i) {
+        result[i] = selected_detections[i];
         const int best_class = selected_detections[i].best_class;
         printf("%s: %.0f%%", names[best_class],    selected_detections[i].det.prob[best_class] * 100);
         if (ext_output)
