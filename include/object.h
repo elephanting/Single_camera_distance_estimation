@@ -32,7 +32,7 @@ private:
     float t_x;
     float t_y;
     float c_x; // x coord of center of object
-    float c_y; // y coord of center of ogject
+    float c_y; // y coord of center of object
     float w;
     float h;
     float distance;

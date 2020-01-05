@@ -8,7 +8,6 @@ int main(int argc, char **argv)
     char *data = (char*)"lib/yolov3/cfg/coco.data";
     char *cfg = (char*)"lib/yolov3/cfg/yolov3-spp.cfg";
     char *weight = (char*)"lib/yolov3/weights/yolov3-spp.weights";
-    char *outfile = (char*)"output.jpg";
     float fovv = atoi(argv[2]);
     float fovh = atoi(argv[3]);
     float ang = atoi(argv[4]);
