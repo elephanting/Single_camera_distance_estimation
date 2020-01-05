@@ -1,4 +1,4 @@
-# Single_camera_distance_estimate
+# Single_camera_distance_estimation
 19fall nctu nsd term project
 
 ## Introduction
@@ -16,6 +16,7 @@ In this project, I use third party library Yolov3 to detect the locations of obj
 * **Yolov3 pretrained weight**: https://pjreddie.com/media/files/yolov3-spp.weights
 ```
 cd lib/yolov3/
+
 mkdir weights
 ```
 Download at `lib/yolov3/weights`
@@ -24,7 +25,9 @@ Download at `lib/yolov3/weights`
 Just do `make` in the main directory.
   
 ## Run
-`./estimate image_name FOVv FOVh p_angle height`
+```
+./estimate image_name FOVv FOVh p_angle height
+```
 
 FOVv: field of view in vertical direction
 
