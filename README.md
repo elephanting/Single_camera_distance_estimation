@@ -41,7 +41,7 @@ angle(Degree), height(Meter)
 
 ### Example:
 ```
-./estimate test.jpg 37 54 45 1.2 
+./estimate test.jpg 37 54 80 1.7 
 ```
 output image name is `predictions.jpg`
 
