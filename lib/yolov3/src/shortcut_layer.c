@@ -8,8 +8,8 @@
 
 layer make_shortcut_layer(int batch, int index, int w, int h, int c, int w2, int h2, int c2, int assisted_excitation, ACTIVATION activation, int train)
 {
-    if(assisted_excitation) fprintf(stderr, "Shortcut Layer - AE: %d\n", index);
-    else fprintf(stderr,"Shortcut Layer: %d\n", index);
+    //if(assisted_excitation) fprintf(stderr, "Shortcut Layer - AE: %d\n", index);
+    //else fprintf(stderr,"Shortcut Layer: %d\n", index);
     layer l = { (LAYER_TYPE)0 };
     l.train = train;
     l.type = SHORTCUT;
