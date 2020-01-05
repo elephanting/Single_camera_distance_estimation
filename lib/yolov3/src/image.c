@@ -340,6 +340,7 @@ void draw_dist(image im, float thresh, char **names, image **alphabet, int class
 {
     // image output
     int selected_detections_num = *num_of_obj;
+    printf("num :%d\n", selected_detections_num);
     for (int i = 0; i < selected_detections_num; ++i) {
         const int best_class = result[i].best_class;
     }
