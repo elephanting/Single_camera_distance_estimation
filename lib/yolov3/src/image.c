@@ -319,8 +319,8 @@ void draw_detections_v3(image im, detection *dets, int num, float thresh, char *
     int i;
     for (i = 0; i < selected_detections_num; ++i) {
         result[i] = selected_detections[i];
-        const int best_class = selected_detections[i].best_class;
-        printf("%s: %.0f%%", names[best_class],    selected_detections[i].det.prob[best_class] * 100);
+        //const int best_class = selected_detections[i].best_class;
+        //printf("%s: %.0f%%", names[best_class],    selected_detections[i].det.prob[best_class] * 100);
         if (ext_output)
             printf("\t(left_x: %4.0f   top_y: %4.0f   width: %4.0f   height: %4.0f)\n",
                 round((selected_detections[i].det.bbox.x - selected_detections[i].det.bbox.w / 2)*im.w),
@@ -330,15 +330,21 @@ void draw_detections_v3(image im, detection *dets, int num, float thresh, char *
             printf("\n");
         int j;
         for (j = 0; j < classes; ++j) {
-            if (selected_detections[i].det.prob[j] > thresh && j != best_class) {
-                printf("%s: %.0f%%\n", names[j], selected_detections[i].det.prob[j] * 100);
-            }
+            //if (selected_detections[i].det.prob[j] > thresh && j != best_class) {
+                //printf("%s: %.0f%%\n", names[j], selected_detections[i].det.prob[j] * 100);
         }
     }
-
+    free(selected_detections);
+}
+void draw_dist(image im, float thresh, char **names, image **alphabet, int classes, int ext_output, detection_with_class* result, int *num_of_obj)
+{
     // image output
-    qsort(selected_detections, selected_detections_num, sizeof(*selected_detections), compare_by_probs);
-    for (i = 0; i < selected_detections_num; ++i) {
+    int selected_detections_num = *num_of_obj;
+    for (int i = 0; i < selected_detections_num; ++i) {
+        const int best_class = result[i].best_class;
+    }
+    qsort(result, selected_detections_num, sizeof(*result), compare_by_probs);
+    for (int i = 0; i < selected_detections_num; ++i) {
             int width = im.h * .006;
             if (width < 1)
                 width = 1;
@@ -351,7 +357,7 @@ void draw_detections_v3(image im, detection *dets, int num, float thresh, char *
             */
 
             //printf("%d %s: %.0f%%\n", i, names[selected_detections[i].best_class], prob*100);
-            int offset = selected_detections[i].best_class * 123457 % classes;
+            int offset = result[i].best_class * 123457 % classes;
             float red = get_color(2, offset, classes);
             float green = get_color(1, offset, classes);
             float blue = get_color(0, offset, classes);
@@ -362,19 +368,21 @@ void draw_detections_v3(image im, detection *dets, int num, float thresh, char *
             rgb[0] = red;
             rgb[1] = green;
             rgb[2] = blue;
-            box b = selected_detections[i].det.bbox;
+            box b = result[i].det.bbox;
             //printf("%f %f %f %f\n", b.x, b.y, b.w, b.h);
-
             int left = (b.x - b.w / 2.)*im.w;
             int right = (b.x + b.w / 2.)*im.w;
             int top = (b.y - b.h / 2.)*im.h;
             int bot = (b.y + b.h / 2.)*im.h;
+            printf("%d\n",left);
+            printf("%d\n",right);
+            printf("%d\n",top);
+            printf("%d\n",bot);
 
             if (left < 0) left = 0;
             if (right > im.w - 1) right = im.w - 1;
             if (top < 0) top = 0;
             if (bot > im.h - 1) bot = im.h - 1;
-
             //int b_x_center = (left + right) / 2;
             //int b_y_center = (top + bot) / 2;
             //int b_width = right - left;
@@ -406,10 +414,19 @@ void draw_detections_v3(image im, detection *dets, int num, float thresh, char *
             }
             if (alphabet) {
                 char labelstr[4096] = { 0 };
-                strcat(labelstr, names[selected_detections[i].best_class]);
+                char diststr[10];
+                printf("gg1\n");
+                sprintf(diststr, "%g", result[i].dist);
+                printf("gg2\n");
+                strcat(labelstr, names[result[i].best_class]);
+                printf("gg3\n");
+                strcat(labelstr, ", dist: ");
+                printf("gg4\n");
+                strcat(labelstr, diststr);
+                printf("gg5\n");
                 int j;
                 for (j = 0; j < classes; ++j) {
-                    if (selected_detections[i].det.prob[j] > thresh && j != selected_detections[i].best_class) {
+                    if (result[i].det.prob[j] > thresh && j != result[i].best_class) {
                         strcat(labelstr, ", ");
                         strcat(labelstr, names[j]);
                     }
@@ -418,8 +435,8 @@ void draw_detections_v3(image im, detection *dets, int num, float thresh, char *
                 draw_label(im, top + width, left, label, rgb);
                 free_image(label);
             }
-            if (selected_detections[i].det.mask) {
-                image mask = float_to_image(14, 14, 1, selected_detections[i].det.mask);
+            if (result[i].det.mask) {
+                image mask = float_to_image(14, 14, 1, result[i].det.mask);
                 image resized_mask = resize_image(mask, b.w*im.w, b.h*im.h);
                 image tmask = threshold_image(resized_mask, .5);
                 embed_image(tmask, im, left, top);
@@ -428,7 +445,7 @@ void draw_detections_v3(image im, detection *dets, int num, float thresh, char *
                 free_image(tmask);
             }
     }
-    free(selected_detections);
+    //free(selected_detections);
 }
 
 void draw_detections(image im, int num, float thresh, box *boxes, float **probs, char **names, image **alphabet, int classes)

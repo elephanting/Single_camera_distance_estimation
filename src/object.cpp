@@ -52,8 +52,9 @@ int main(int argc, char **argv)
     
     detection_with_class *result = new detection_with_class[50]; // set 50 as limitation of total object counts
     int num_of_obj;
+    image im;
     
-    test_detector(data, cfg, weight, argv[1], 0.25, 0.5, 0, 0, 0, 0, 0, 0, result, &num_of_obj);
+    test_detector(data, cfg, weight, argv[1], 0.25, 0.5, 0, 0, 0, 0, 0, 0, result, &num_of_obj, &im);
 
     std::unique_ptr<Object[]> object(new Object[num_of_obj]);
     for (int i = 0; i < num_of_obj; ++i)
@@ -68,10 +69,13 @@ int main(int argc, char **argv)
     {
         std::cout << "start" << std::endl;
         object[i].estimate_dist();
+        result[i].dist = object[i].dist();
         std::cout << "\tcenter_x: " << object[i].center_x() << "  center_y: " << object[i].center_y() << "  width: " << object[i].width() << "  height: " << object[i].height() << "  distance: " << object[i].dist() << std::endl;
     }
+    draw_detector(data, im, 0.25, 0, result, &num_of_obj);
     std::cout << "done" << std::endl;
     //std::cout << num_of_obj << std::endl;
+    delete[] result;
     return 0;
 }
 

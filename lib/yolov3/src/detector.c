@@ -1433,7 +1433,7 @@ void calc_anchors(char *datacfg, int num_of_clusters, int width, int height, int
 
 
 void test_detector(char *datacfg, char *cfgfile, char *weightfile, char *filename, float thresh,
-    float hier_thresh, int dont_show, int ext_output, int save_labels, char *outfile, int letter_box, int benchmark_layers, detection_with_class* result, int *num_of_obj)
+    float hier_thresh, int dont_show, int ext_output, int save_labels, char *outfile, int letter_box, int benchmark_layers, detection_with_class* result, int *num_of_obj, image *tmpim)
 {
     list *options = read_data_cfg(datacfg);
     char *name_list = option_find_str(options, "names", "data/names.list");
@@ -1482,6 +1482,7 @@ void test_detector(char *datacfg, char *cfgfile, char *weightfile, char *filenam
         //image im;
         //image sized = load_image_resize(input, net.w, net.h, net.c, &im);
         image im = load_image(input, 0, 0, net.c);
+        *tmpim = im;
         image sized;
         if(letter_box) sized = letterbox_image(im, net.w, net.h);
         else sized = resize_image(im, net.w, net.h);
@@ -1507,11 +1508,40 @@ void test_detector(char *datacfg, char *cfgfile, char *weightfile, char *filenam
             else diounms_sort(dets, nboxes, l.classes, nms, l.nms_kind, l.beta_nms);
         }
         draw_detections_v3(im, dets, nboxes, thresh, names, alphabet, l.classes, ext_output, result, num_of_obj);
-        save_image(im, "predictions");
-        if (!dont_show) {
-            show_image(im, "predictions");
-        }
+        free_detections(dets, nboxes);
+        free_image(im);
+        free_image(sized);
+        if (filename) break;
+    }
+    // free memory
+    free_ptrs((void**)names, net.layers[net.n - 1].classes);
+    free_list_contents_kvp(options);
+    free_list(options);
 
+    int i;
+    const int nsize = 8;
+    for (j = 0; j < nsize; ++j) {
+        for (i = 32; i < 127; ++i) {
+            free_image(alphabet[j][i]);
+        }
+        free(alphabet[j]);
+    }
+    free(alphabet);
+
+    free_network(net);
+}
+
+void draw_detector(char *datacfg, image im, float thresh, int ext_output, detection_with_class* result, int *num_of_obj)
+{
+    list *options = read_data_cfg(datacfg);
+    char *name_list = option_find_str(options, "names", "data/names.list");
+    int names_size = 0;
+    char **names = get_labels_custom(name_list, &names_size); //get_labels(name_list);
+    image **alphabet = load_alphabet();
+    draw_dist(im, thresh, names, alphabet, 80, 0, result, num_of_obj);
+    save_image(im, "predictions");
+
+        /*
         if (outfile) {
             if (json_buf) {
                 char *tmp = ", \n";
@@ -1523,8 +1553,8 @@ void test_detector(char *datacfg, char *cfgfile, char *weightfile, char *filenam
             fwrite(json_buf, sizeof(char), strlen(json_buf), json_file);
             free(json_buf);
         }
-
         // pseudo labeling concept - fast.ai
+        
         if (save_labels)
         {
             char labelpath[4096];
@@ -1567,15 +1597,16 @@ void test_detector(char *datacfg, char *cfgfile, char *weightfile, char *filenam
         fwrite(tmp, sizeof(char), strlen(tmp), json_file);
         fclose(json_file);
     }
+    */
 
     // free memory
-    free_ptrs((void**)names, net.layers[net.n - 1].classes);
-    free_list_contents_kvp(options);
-    free_list(options);
+    //free_ptrs((void**)names, net.layers[net.n - 1].classes);
+    //free_list_contents_kvp(options);
+    //free_list(options);
 
     int i;
     const int nsize = 8;
-    for (j = 0; j < nsize; ++j) {
+    for (int j = 0; j < nsize; ++j) {
         for (i = 32; i < 127; ++i) {
             free_image(alphabet[j][i]);
         }
@@ -1583,7 +1614,7 @@ void test_detector(char *datacfg, char *cfgfile, char *weightfile, char *filenam
     }
     free(alphabet);
 
-    free_network(net);
+    //free_network(net);
 }
 
 void run_detector(int argc, char **argv)
