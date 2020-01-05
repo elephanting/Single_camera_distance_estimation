@@ -326,8 +326,8 @@ void draw_detections_v3(image im, detection *dets, int num, float thresh, char *
                 round((selected_detections[i].det.bbox.x - selected_detections[i].det.bbox.w / 2)*im.w),
                 round((selected_detections[i].det.bbox.y - selected_detections[i].det.bbox.h / 2)*im.h),
                 round(selected_detections[i].det.bbox.w*im.w), round(selected_detections[i].det.bbox.h*im.h));
-        else
-            printf("\n");
+        else {}
+            //printf("\n");
         int j;
         for (j = 0; j < classes; ++j) {
             //if (selected_detections[i].det.prob[j] > thresh && j != best_class) {
@@ -340,10 +340,12 @@ void draw_dist(image im, float thresh, char **names, image **alphabet, int class
 {
     // image output
     int selected_detections_num = *num_of_obj;
-    printf("num :%d\n", selected_detections_num);
+    /*
     for (int i = 0; i < selected_detections_num; ++i) {
-        const int best_class = result[i].best_class;
+        box b = result[i].det.bbox;
+        printf("%f %f %f %f\n", b.x, b.y, b.w, b.h);
     }
+    */
     qsort(result, selected_detections_num, sizeof(*result), compare_by_probs);
     for (int i = 0; i < selected_detections_num; ++i) {
             int width = im.h * .006;
@@ -375,10 +377,10 @@ void draw_dist(image im, float thresh, char **names, image **alphabet, int class
             int right = (b.x + b.w / 2.)*im.w;
             int top = (b.y - b.h / 2.)*im.h;
             int bot = (b.y + b.h / 2.)*im.h;
-            printf("%d\n",left);
-            printf("%d\n",right);
-            printf("%d\n",top);
-            printf("%d\n",bot);
+            //printf("%d\n",left);
+            //printf("%d\n",right);
+            //printf("%d\n",top);
+            //printf("%d\n",bot);
 
             if (left < 0) left = 0;
             if (right > im.w - 1) right = im.w - 1;
@@ -415,16 +417,12 @@ void draw_dist(image im, float thresh, char **names, image **alphabet, int class
             }
             if (alphabet) {
                 char labelstr[4096] = { 0 };
-                char diststr[10];
-                printf("gg1\n");
+                char diststr[10] = { 0 };
                 sprintf(diststr, "%g", result[i].dist);
-                printf("gg2\n");
                 strcat(labelstr, names[result[i].best_class]);
-                printf("gg3\n");
                 strcat(labelstr, ", dist: ");
-                printf("gg4\n");
                 strcat(labelstr, diststr);
-                printf("gg5\n");
+                /*
                 int j;
                 for (j = 0; j < classes; ++j) {
                     if (result[i].det.prob[j] > thresh && j != result[i].best_class) {
@@ -432,6 +430,7 @@ void draw_dist(image im, float thresh, char **names, image **alphabet, int class
                         strcat(labelstr, names[j]);
                     }
                 }
+                */
                 image label = get_label_v3(alphabet, labelstr, (im.h*.03));
                 draw_label(im, top + width, left, label, rgb);
                 free_image(label);

@@ -15,6 +15,7 @@ Img::Img(char *file, float FOVv, float FOVh, float angle, float Height)
     this->H = Height;
     this->c_x = this->w / 2;
     this->c_y = this->h / 2;
+    this->coe = 4320.0;
 
     std::cout << "image" << " is " << this->w << " pixels wide and " << this->h << " pixels high.\n";
 }

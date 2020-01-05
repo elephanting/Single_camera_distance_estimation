@@ -15,6 +15,7 @@ public:
     void set_cy(float cy_) {c_y = cy_;}
     float get_fovv() {return FOV_v;}
     float get_fovh() {return FOV_h;}
+    float get_coe() {return coe;}
     float get_angle() {return angle;}
     float const & camera_h() const {return H;}
     float & camera_h() {return H;}
@@ -28,6 +29,7 @@ private:
     float FOV_h;
     float angle;
     float H; // height of camera
+    float coe;
 };
 
 #endif

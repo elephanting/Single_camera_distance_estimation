@@ -1,7 +1,9 @@
+#ifndef _OBJECT_H_
+#define _OBJECT_H_
+
 #include <iostream>
 #include "img.h"
 #include "darknet.h"
-
 
 class Object
 {
@@ -35,3 +37,5 @@ private:
     float h;
     float distance;
 };
+
+#endif
