@@ -26,9 +26,9 @@ int main(int argc, char **argv)
         object[i].set_attr(&result[i], &img);
     }
     img.set_w(img.get_w() / img.get_coe());
-    std::cout << "w :" << img.get_w() << std::endl;
+    //std::cout << "w :" << img.get_w() << std::endl;
     img.set_h(img.get_h() / img.get_coe());
-    std::cout << "h :" << img.get_h() << std::endl;
+    //std::cout << "h :" << img.get_h() << std::endl;
     for (int i = 0; i < num_of_obj; ++i)
     {
         object[i].estimate_dist();

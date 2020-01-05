@@ -17,10 +17,10 @@ public:
     float & width() {return w;}
     float const & height() const {return h;}
     float & height() {return h;}
-    float const & center_x() const {return c_x;}
-    float & center_x() {return c_x;}
-    float const & center_y() const {return c_y;}
-    float & center_y() {return c_y;}
+    float const & center_x() const {return b_x;}
+    float & center_x() {return b_x;}
+    float const & center_y() const {return b_y;}
+    float & center_y() {return b_y;}
     float const & dist() const {return distance;}
     float & dist() {return distance;}
 
@@ -31,8 +31,8 @@ private:
     Img *img;
     float t_x;
     float t_y;
-    float c_x; // x coord of center of object
-    float c_y; // y coord of center of object
+    float b_x; // x coord of bottom center of object
+    float b_y; // y coord of bottom center of object
     float w;
     float h;
     float distance;

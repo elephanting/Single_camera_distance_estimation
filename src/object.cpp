@@ -15,19 +15,19 @@ void Object::set_attr(detection_with_class *result, Img *img)
     this->h = result->det.bbox.h * img->get_h();
     this->t_x = (result->det.bbox.x - result->det.bbox.w / 2) * img->get_w();
     this->t_y = (result->det.bbox.y - result->det.bbox.h / 2) * img->get_h();
-    this->c_x = this->t_x + this->w / 2;
-    this->c_y = this->t_y + this->h / 2;
+    this->b_x = this->t_x + this->w / 2;
+    this->b_y = this->t_y + this->h;
 
     /* coordinate transformation */
-    this->c_x = (this->c_x - img->get_cx()) / this->img->get_coe();
-    this->c_y = (img->get_cy() - this->c_y) / this->img->get_coe();
+    this->b_x = (this->b_x - img->get_cx()) / this->img->get_coe();
+    this->b_y = (img->get_cy() - this->b_y) / this->img->get_coe();
 }
 
 
 void Object::estimate_dist()
 {
-    float phi_v = this->img->get_angle() + (this->img->get_h() / 2 - this->c_y) * (this->img->get_fovv() / this->img->get_h());
-    float phi_h = (this->c_x - this->img->get_w() / 2) * (this->img->get_fovh() / this->img->get_w());
+    float phi_v = this->img->get_angle() + (this->img->get_h() / 2 - this->b_y) * (this->img->get_fovv() / this->img->get_h());
+    float phi_h = (this->b_x - this->img->get_w() / 2) * (this->img->get_fovh() / this->img->get_w());
     float y = this->img->camera_h() * tan(phi_v * PI / 180.0);
     float x = y * tan(phi_h * PI / 180.0);
     this->distance = sqrt(pow(y, 2) + pow(x, 2) + pow(this->img->camera_h(), 2));
